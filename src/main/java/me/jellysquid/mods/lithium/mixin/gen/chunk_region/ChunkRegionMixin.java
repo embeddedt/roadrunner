@@ -27,11 +27,16 @@ public abstract class ChunkRegionMixin implements StructureWorldAccess {
     @Final
     private int width;
 
+    @Shadow
+    @Final
+    private ChunkPos upperCorner;
     // Array view of the chunks in the region to avoid an unnecessary de-reference
     private Chunk[] chunksArr;
 
     // The starting position of this region
     private int minChunkX, minChunkZ;
+
+    private int maxX, maxZ;
 
     /**
      * @author JellySquid
@@ -40,6 +45,9 @@ public abstract class ChunkRegionMixin implements StructureWorldAccess {
     private void init(ServerWorld world, List<Chunk> chunks, CallbackInfo ci) {
         this.minChunkX = this.lowerCorner.x;
         this.minChunkZ = this.lowerCorner.z;
+
+        this.maxX = this.upperCorner.x - this.lowerCorner.x;
+        this.maxZ = this.upperCorner.z - this.lowerCorner.z;
 
         this.chunksArr = chunks.toArray(new Chunk[0]);
     }
@@ -54,7 +62,7 @@ public abstract class ChunkRegionMixin implements StructureWorldAccess {
         int z = (pos.getZ() >> 4) - this.minChunkZ;
         int w = this.width;
 
-        if (x >= 0 && z >= 0 && x < w && z < w) {
+        if (x >= 0 && z >= 0 && x <= this.maxX && z <= this.maxZ) {
             return this.chunksArr[x + z * w].getBlockState(pos);
         } else {
             throw new NullPointerException("No chunk exists at " + new ChunkPos(pos));
